@@ -4,9 +4,8 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "forge-std/console.sol";
 
-contract MyToken is ERC721, ERC721URIStorage {
+contract MyTokenERC721 is ERC721, ERC721URIStorage {
     address public owner;
     uint256 public buyPrice = 0.01 ether; // Цена токена в wei.
     uint256 private _tokenUId = 1;
@@ -44,19 +43,15 @@ contract MyToken is ERC721, ERC721URIStorage {
     function buy(string memory _tokenURI) public payable {
         require(msg.value >= buyPrice, "Not enough ETH to buy NFT");
 
-        // Создаем новый токен и передаем его покупателю
+        // Создаем новый токен и передаем его покупателю.
         uint256 newTokenId = _tokenUId;
         _mint(msg.sender, newTokenId);
         _setTokenURI(newTokenId, _tokenURI);
 
-        // Обновляем идентификатор для следующего токена
+        // Обновляем идентификатор для следующего токена.
         _tokenUId += 1;
 
-        console.log("Attempting to send ETH to owner:", owner);
-        console.log("Owner balance before transfer:", address(owner).balance);
-        console.log("Sent value:", msg.value);
-
-        // Передаем оплату владельцу контракта
+        // Передаем оплату владельцу контракта.
         payable(owner).call{value: msg.value}("");
     }
 }

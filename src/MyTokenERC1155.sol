@@ -21,11 +21,11 @@ contract MyTokenERC1155 is ERC1155, Ownable {
         require(msg.value >= amount * buyPrice, "Not enough ETH to buy tokens");
         require(balanceOf(owner(), TOKEN_ID) >= amount, "Not enough tokens available");
 
-        // Передаем оплату владельцу контракта
+        // Передаем оплату владельцу контракта.
         (bool success, ) = payable(owner()).call{value: msg.value, gas: 100000}("");
         require(success, "Transfer failed");
 
-        // Передаем токены покупателю
+        // Передаем токены покупателю.
         _safeTransferFrom(owner(), msg.sender, TOKEN_ID, amount, "");
     }
 

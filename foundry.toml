@@ -6,3 +6,6 @@ libs = ["lib"]
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
 [rpc_endpoints]
 sepolia = "https://eth-sepolia.alchemyapi.io/v2/${ALCHEMY_API_KEY}"
+
+[etherscan]
+sepolia = { key = "{ETHERSCAN_API_KEY}" }

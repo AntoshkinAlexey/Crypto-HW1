@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 import "../src/MyTokenERC721.sol";
 
 contract MyTokenERC721Test is Test {
-    MyToken token;
+    MyTokenERC721 token;
     address owner;
     address user1;
     uint256 public buyPrice = 0.01 ether;
