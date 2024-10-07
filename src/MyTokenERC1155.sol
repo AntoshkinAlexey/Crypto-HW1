@@ -1,21 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.10;
 
-contract MyTokenERC1155 {
-    constructor(address initialOwner) ERC1155("") Ownable(initialOwner) {}
+import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-    function setURI(string memory newuri) public onlyOwner {
-        _setURI(newuri);
-    }
-
-    address public owner;
+contract MyTokenERC1155 is ERC1155, Ownable {
     uint256 public buyPrice = 0.01 ether; // Цена токена в wei.
     uint256 public constant TOKEN_ID = 1; // Идентификатор токена
 
-    constructor() ERC1155("MyTokenERC1155", "MT1155") {
-        owner = msg.sender;
-        _mint(msg.sender, TOKEN_ID, 100); // Начальная эмиссия токенов.
-        _setURI(TOKEN_ID, "https://example.com/metadata/1.json"); // Установка метаданных для токена
+    constructor(address initialOwner) ERC1155("") Ownable(initialOwner) {
+        _mint(initialOwner, TOKEN_ID, 100, ""); // Начальная эмиссия токенов.
+        _setURI("https://example.com/metadata/1.json"); // Установка метаданных для токена
     }
 
     /**
@@ -24,21 +19,17 @@ contract MyTokenERC1155 {
      */
     function buy(uint256 amount) public payable {
         require(msg.value >= amount * buyPrice, "Not enough ETH to buy tokens");
-        require(balanceOf(owner, TOKEN_ID) >= amount, "Not enough tokens available");
-
-        _transferFrom(owner, msg.sender, TOKEN_ID, amount);
+        require(balanceOf(owner(), TOKEN_ID) >= amount, "Not enough tokens available");
 
         // Передаем оплату владельцу контракта
-        payable(owner).transfer(msg.value);
+        (bool success, ) = payable(owner()).call{value: msg.value, gas: 100000}("");
+        require(success, "Transfer failed");
+
+        // Передаем токены покупателю
+        _safeTransferFrom(owner(), msg.sender, TOKEN_ID, amount, "");
     }
 
-    /**
-     * @dev Устанавливает URI для токена.
-     * @param tokenId Идентификатор токена.
-     * @param tokenURI URI метаданных токена.
-     */
-    function setTokenURI(uint256 tokenId, string memory tokenURI) public {
-        require(msg.sender == owner, "Only owner can set token URI");
-        _setURI(tokenId, tokenURI);
+    function setURI(string memory newuri) public onlyOwner {
+        _setURI(newuri);
     }
 }

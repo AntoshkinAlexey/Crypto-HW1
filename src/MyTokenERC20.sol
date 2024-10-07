@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 
-contract MyTokenERC20 is ERC20 {
+contract MyTokenERC20 is ERC20Permit {
     address public owner;
     uint256 public buyPrice = 100 ether; // Цена токена в wei.
 
     /**
      * @dev Устанавливает начальное количество токенов и владельца контракта.
      */
-    constructor() ERC20("MyTokenERC20", "MT20") {
-        _mint(msg.sender, 100); // Начальная эмиссия токенов.
+    constructor() ERC20("MyTokenERC20", "MT20") ERC20Permit("MyTokenERC20") {
+        _mint(msg.sender, 1000 * 10 ** decimals()); // Начальная эмиссия токенов.
         owner = msg.sender;
     }
 

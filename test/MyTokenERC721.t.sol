@@ -2,10 +2,10 @@
 pragma solidity ^0.8.10;
 
 import "forge-std/Test.sol";
-import "../src/MyTokenERC1155.sol";
+import "../src/MyTokenERC721.sol";
 
-contract MyTokenERC1155Test is Test {
-    MyTokenERC1155 token;
+contract MyTokenERC721Test is Test {
+    MyToken token;
     address owner;
     address user1;
     uint256 public buyPrice = 0.01 ether;
@@ -13,55 +13,42 @@ contract MyTokenERC1155Test is Test {
     function setUp() public {
         owner = address(this);
         user1 = vm.addr(1);
-        token = new MyTokenERC1155(owner);
+        token = new MyToken();
     }
 
-    function testInitialMint() public {
-        uint256 balance = token.balanceOf(owner, 1);
-        assertEq(balance, 100, "Initial minting of tokens failed");
+    function testMintNFT() public {
+        string memory tokenURI = "https://example.com/metadata/1.json";
+        uint256 tokenId = token.mintNFT(owner, tokenURI);
+
+        assertEq(token.ownerOf(tokenId), owner, "Owner of minted token is incorrect");
+        assertEq(token.tokenURI(tokenId), tokenURI, "Token URI of minted token is incorrect");
     }
 
-    function testSetURI() public {
-        string memory newUri = "https://example.com/metadata/updated.json";
-        token.setURI(newUri);
-        string memory uri = token.uri(1);
-        assertEq(uri, newUri, "URI not updated correctly");
-    }
-
-    function testBuyTokens() public {
-        uint256 amountToBuy = 5;
-        uint256 ethAmount = amountToBuy * buyPrice;
+    function testBuyNFT() public {
+        string memory tokenURI = "https://example.com/metadata/2.json";
+        uint256 ethAmount = buyPrice;
 
         vm.deal(user1, ethAmount);
         vm.prank(user1);
-        token.buy{value: ethAmount}(amountToBuy);
+        token.buy{value: ethAmount}(tokenURI);
 
-        uint256 userBalance = token.balanceOf(user1, 1);
-        assertEq(userBalance, amountToBuy, "Token buying failed");
-
-        uint256 ownerBalance = token.balanceOf(owner, 1);
-        assertEq(ownerBalance, 100 - amountToBuy, "Owner balance did not decrease correctly");
+        uint256 tokenId = 1;
+        assertEq(token.ownerOf(tokenId), user1, "Owner of purchased token is incorrect");
+        assertEq(token.tokenURI(tokenId), tokenURI, "Token URI of purchased token is incorrect");
     }
 
     function testFailBuyWithoutEnoughETH() public {
-        uint256 amountToBuy = 5;
-        uint256 ethAmount = (amountToBuy * buyPrice) - 1; // Не хватает одного wei
+        string memory tokenURI = "https://example.com/metadata/3.json";
+        uint256 ethAmount = buyPrice - 1; // Не хватает одного wei
 
         vm.deal(user1, ethAmount);
         vm.prank(user1);
-        token.buy{value: ethAmount}(amountToBuy);
+        token.buy{value: ethAmount}(tokenURI); // Ожидаем, что транзакция завершится с ошибкой
     }
 
-    function testSetTokenURI() public {
-        string memory newTokenURI = "https://example.com/metadata/new.json";
-        token.setTokenURI(1, newTokenURI);
-        string memory updatedURI = token.uri(1);
-        assertEq(updatedURI, newTokenURI, "Token URI was not updated correctly");
-    }
-
-    function testFailSetTokenURIByNonOwner() public {
-        string memory newTokenURI = "https://example.com/metadata/new.json";
+    function testFailMintByNonOwner() public {
+        string memory tokenURI = "https://example.com/metadata/4.json";
         vm.prank(user1);
-        token.setTokenURI(1, newTokenURI); // Это должно завершиться ошибкой, так как user1 не является владельцем
+        token.mintNFT(user1, tokenURI); // Ожидаем, что транзакция завершится с ошибкой, так как только владелец может создавать токены
     }
 }
